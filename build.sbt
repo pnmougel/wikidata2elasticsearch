@@ -32,6 +32,8 @@ addCommandAlias("dl", "download")
 lazy val flatten = taskKey[Unit]("Uncompress wikidata file")
 fullRunTask(flatten, Compile, "tasks.Flatten")
 
-
 lazy val split = taskKey[Unit]("Split json file")
 fullRunTask(split, Compile, "tasks.SplitJson")
+
+lazy val index = taskKey[Unit]("Index wikidata items into elasticsearch")
+fullRunTask(index, Compile, "tasks.IndexItems")

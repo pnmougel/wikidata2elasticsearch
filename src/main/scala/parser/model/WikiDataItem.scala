@@ -41,7 +41,6 @@ case class WikiDataItem(`type`: String, datatype: Option[DataType], id: String,
   def isItem : Boolean = id.startsWith("Q")
   def isProperty : Boolean = id.startsWith("P")
 
-
   def toEsItem = {
     val siteLinksEs = sitelinks.get.values.toArray
     val claimsEs = for((propertyId, claimsForProperty) <- claims; claim <- claimsForProperty) yield { claim.toEs(propertyId) }
