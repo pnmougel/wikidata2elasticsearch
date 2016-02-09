@@ -19,6 +19,12 @@ object Download {
     } else {
       outDir.mkdirs()
     }
-    s"wget ${Conf.getString("dump.url")}${Conf.getString("dump.file")}.bz2 -P ${outDirPath}".!!
+    val outFile = new File(outDirPath)
+    if(Conf.getBoolean("dump.deleteIfFileExists") || !outFile.exists()) {
+      s"wget ${Conf.getString("dump.url")}${Conf.getString("dump.file")}.bz2 -P ${outDirPath}".!!
+    } else if(outFile.exists()) {
+      println("File already downloaded.")
+      println("To download the file again set 'dump.deleteIfFileExists = true' in 'src/main/resources/application.conf'")
+    }
   }
 }

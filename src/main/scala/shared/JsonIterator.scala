@@ -10,7 +10,7 @@ import scala.io.Source
 class JsonIterator(file: File, maxJson: Int = -1, showProgress: Boolean = true) {
   def forEach(f: String => Unit): Unit = {
     val startTime = System.currentTimeMillis()
-    var i = 1
+    var i = 0
     var done = 0L
     val fileSize = file.length()
 
@@ -18,7 +18,7 @@ class JsonIterator(file: File, maxJson: Int = -1, showProgress: Boolean = true) 
       val length = line.size
       done += length
 
-      if (i % 10000 == 0 && showProgress) {
+      if (i % 100 == 0 && showProgress) {
         val curTime = System.currentTimeMillis()
         val remainingBytes = fileSize - done
         val secElapsed = (curTime - startTime).toDouble / 1000
@@ -26,9 +26,9 @@ class JsonIterator(file: File, maxJson: Int = -1, showProgress: Boolean = true) 
         val donePercentage = 100 * done.toDouble / fileSize
         val minutesRemaining = remainingBytes / bytesPerSec
 
-        println(f"Done ${donePercentage}%.0f" + "%" + f" \tat ${bytesPerSec / (1024 * 1024)}%.2f Mb/sec. \tApprox ${minutesRemaining}%.0f sec remaining")
+        print(f"\rDone ${donePercentage}%.0f" + "%" + f" \tat ${bytesPerSec / (1024 * 1024)}%.2f Mb/sec. \tApprox ${minutesRemaining}%.0f sec remaining")
       }
-      if(maxJson != -1 && maxJson < i - 1) {
+      if(maxJson != -1 && maxJson < i) {
         return
       }
       i += 1
@@ -39,6 +39,9 @@ class JsonIterator(file: File, maxJson: Int = -1, showProgress: Boolean = true) 
         val content = if (lastChar == ',') line.substring(0, length - 1) else line
         f(content)
       }
+    }
+    if(showProgress) {
+      println("")
     }
   }
 }

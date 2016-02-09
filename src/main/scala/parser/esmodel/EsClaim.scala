@@ -8,6 +8,6 @@ case class EsClaim(id: String,
                    rank: String, `type`: String,
                    qualifiersOrder: Array[String],
                    mainSnak: EsSnak,
-                   qualifiers: Array[EsSnak],
-                   references: Array[EsReference]) {
+                   qualifiers: Option[Array[EsSnak]],
+                   references: Option[Array[EsReference]]) {
 }

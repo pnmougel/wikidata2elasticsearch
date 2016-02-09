@@ -2,7 +2,6 @@ package parser.model
 
 import parser.model.enums.Rank.Rank
 import parser.esmodel.{EsSnak, EsClaim}
-import tasks.IndexProperty
 
 /**
  * Created by nico on 08/02/16.
@@ -21,6 +20,9 @@ case class Claim(id: String,
     } else { Array[EsSnak]() }
 
     val esReferences = references.map(_.toEs())
-    EsClaim(id, propertyId, rank.toString, `type`, qualifiersOrder, mainsnak.toEs(), esQualifiers, esReferences)
+
+    EsClaim(id, propertyId, rank.toString, `type`, qualifiersOrder, mainsnak.toEs(),
+      if(esQualifiers.isEmpty) None else Some(esQualifiers),
+      if(esReferences.isEmpty) None else Some(esReferences))
   }
 }
