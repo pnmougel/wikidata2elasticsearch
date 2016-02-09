@@ -1,6 +1,6 @@
 package parser.model
 
-import parser.outmodel.{EsReference, EsSnak}
+import parser.esmodel.{EsReference, EsSnak}
 
 /**
  * Created by nico on 08/02/16.

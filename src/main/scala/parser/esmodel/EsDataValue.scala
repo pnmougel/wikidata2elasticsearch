@@ -1,4 +1,4 @@
-package parser.outmodel
+package parser.esmodel
 
 import parser.model.datavalues.{TimeValue, Quantity, MonolingualText, GlobeCoordinate}
 

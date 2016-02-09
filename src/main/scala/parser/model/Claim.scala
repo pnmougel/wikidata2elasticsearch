@@ -1,8 +1,8 @@
 package parser.model
 
-import parser.ParseProperty
 import parser.model.enums.Rank.Rank
-import parser.outmodel.{EsSnak, EsClaim}
+import parser.esmodel.{EsSnak, EsClaim}
+import tasks.IndexProperty
 
 /**
  * Created by nico on 08/02/16.
@@ -21,6 +21,6 @@ case class Claim(id: String,
     } else { Array[EsSnak]() }
 
     val esReferences = references.map(_.toEs())
-    EsClaim(id, ParseProperty.propertyIdToRef(propertyId), rank.toString, `type`, qualifiersOrder, mainsnak.toEs(), esQualifiers, esReferences)
+    EsClaim(id, propertyId, rank.toString, `type`, qualifiersOrder, mainsnak.toEs(), esQualifiers, esReferences)
   }
 }

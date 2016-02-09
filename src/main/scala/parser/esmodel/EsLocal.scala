@@ -1,4 +1,4 @@
-package parser.outmodel
+package parser.esmodel
 
 /**
  * Created by nico on 08/02/16.

@@ -1,6 +1,6 @@
 package parser.model.datavalues
 
-import parser.outmodel.EsDataValue
+import parser.esmodel.EsDataValue
 
 import scala.collection.immutable.HashMap.HashTrieMap
 import scala.collection.immutable.Map.{Map4, Map2}
@@ -8,34 +8,17 @@ import scala.collection.immutable.Map.{Map4, Map2}
 /**
  * Created by nico on 08/02/16.
  */
-//case class BaseDataValue(globeCoordinate: Option[GlobeCoordinate] = None,
-//                         monolingualText: Option[MonolingualText] = None,
-//                         quantity: Option[Quantity] = None,
-//                         string: Option[String] = None,
-//                         wikiItemId: Option[BigInt] = None,
-//                         wikiPropertyId: Option[BigInt] = None,
-//                         time: Option[TimeValue] = None) {
-//  def toEs = EsDataValue(globeCoordinate, monolingualText, quantity, string, wikiItemId, wikiPropertyId, time)
-//}
-
 case class BaseDataValue(value: Any, `type`: String) {
   lazy val jsMap = value match {
-    case d: String => {
-      Map("string" -> d)
-    }
-    case f: Map2[String, Any] => {
-      f
-    }
-    case x: Map4[String, Any] => {
-      x
-    }
-    case x: HashTrieMap[String, Any] => {
-      x
-    }
+    case str: String => Map("string" -> str)
+//    case x: Map2[String, _] => x
+//    case x: Map4[String, _] => x
+//    case x: HashTrieMap[String, _] => x
     case _ => {
-      println("Unable to map data fields")
-      System.exit(0)
-      Map[String, Any]()
+      value.asInstanceOf[Map[String, Any]]
+//      println("Unable to map data fields")
+//      System.exit(0)
+//      Map[String, Any]()
     }
   }
 
@@ -45,21 +28,25 @@ case class BaseDataValue(value: Any, `type`: String) {
         case Some(x: BigInt) => Some(x.toDouble)
         case Some(x: Double) => Some(x)
         case Some(_) => None
+        case None => None
       }
       val precision = jsMap.get("precision") match {
         case Some(x: BigInt) => Some(x.toDouble)
         case Some(x: Double) => Some(x)
         case Some(_) => None
+        case None => None
       }
       val latitude = jsMap.get("latitude") match {
         case Some(x: BigInt) => Some(x.toDouble)
         case Some(x: Double) => Some(x)
         case Some(_) => None
+        case None => None
       }
       val longitude = jsMap.get("longitude") match {
         case Some(x: BigInt) => Some(x.toDouble)
         case Some(x: Double) => Some(x)
         case Some(_) => None
+        case None => None
       }
       val globe = jsMap("globe").asInstanceOf[String]
       Some(GlobeCoordinate(altitude, precision, latitude, longitude, globe))
@@ -120,14 +107,13 @@ case class BaseDataValue(value: Any, `type`: String) {
 
   def time = {
     if(`type` == "time") {
-//      case class TimeValue(precision: BigInt, timezone: BigInt, before: BigInt, calendarmodel: String, after: BigInt, time: String)
       val precision = jsMap("precision").asInstanceOf[BigInt]
       val timezone = jsMap("timezone").asInstanceOf[BigInt]
       val before = jsMap("before").asInstanceOf[BigInt]
-      val calendarmodel = jsMap("calendarmodel").asInstanceOf[String]
+      val calendarModel = jsMap("calendarmodel").asInstanceOf[String]
       val after = jsMap("after").asInstanceOf[BigInt]
       val time = jsMap("time").asInstanceOf[String]
-      Some(TimeValue(precision, timezone, before, calendarmodel, after, time))
+      Some(TimeValue(precision, timezone, before, calendarModel, after, time))
     } else {
       None
     }

@@ -3,7 +3,7 @@ package parser.model
 import parser.model.datavalues.BaseDataValue
 import parser.model.enums.DataType.DataType
 import parser.model.enums.SnakType.SnakType
-import parser.outmodel.EsSnak
+import parser.esmodel.EsSnak
 
 /**
  * Created by nico on 08/02/16.

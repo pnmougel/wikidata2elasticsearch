@@ -1,4 +1,4 @@
-package parser.outmodel
+package parser.esmodel
 
 import parser.model.SiteLink
 
@@ -8,5 +8,5 @@ import parser.model.SiteLink
 case class EsWikiDataItem(id: String,
                           labels: Array[EsLocal],
                           claims: Array[EsClaim],
-                          siteLinks: Array[SiteLink]) {
+                          siteLinks: Array[SiteLink]) extends IndexableModel {
 }
