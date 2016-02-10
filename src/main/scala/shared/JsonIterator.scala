@@ -1,9 +1,6 @@
 package shared
 
 import java.io.File
-import java.nio.file.Files
-import java.util.function.Consumer
-import scala.collection.JavaConversions._
 import scala.io.Source
 
 /**
