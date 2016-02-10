@@ -9,7 +9,7 @@ import org.json4s._
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.jackson.JsonMethods._
 import parser.model.enums.{DataType, Rank, SnakType}
-import shared.{Conf, ElasticSearch, JsonIterator}
+import shared.{InitModel, Conf, ElasticSearch, JsonIterator}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -54,28 +54,27 @@ object IndexItems {
   def main(args: Array[String]) {
     val indexName = Conf.getString("elasticsearch.index")
 
-    // Delete index if it exists
-    client.execute(indexExists(Seq(indexName))).map { f =>
-      if(f.isExists && Conf.getBoolean("elasticsearch.deleteIndexIfExists")) {
-        client.execute(deleteIndex(indexName)).await
-        Thread.sleep(1000)
-      }
-    }.await
-
+    InitModel.createIndex
 
     val jsFile = new File(s"${Conf.getString("data.path")}/${Conf.getString("dump.file")}")
     if(jsFile.exists()) {
-      new JsonIterator(jsFile).forEach { data =>
+      new JsonIterator(jsFile).forEach { case (data, i) =>
         val js = transformJs(data)
-        val item = js.extract[parser.model.WikiDataItem]
-        if(item.isItem) {
-          val esItem = item.toEsItem
-          val indexQuery = index into indexName / "items" source esItem id esItem.id
-          addToQueryBuffer(indexQuery)
-        } else if(item.isProperty) {
-          val esItem = item.toEsProperty
-          val indexQuery = index into indexName / "properties" source esItem id esItem.id
-          addToQueryBuffer(indexQuery)
+        val itemOpt = js.extractOpt[parser.model.WikiDataItem]
+        if(itemOpt.isDefined) {
+          val item = itemOpt.get
+          if(item.isItem) {
+            val esItem = item.toEsItem
+            val indexQuery = index into indexName / "items" source esItem id esItem.id
+            addToQueryBuffer(indexQuery)
+          } else if(item.isProperty) {
+            val esItem = item.toEsProperty
+            val indexQuery = index into indexName / "prop" source esItem id esItem.id
+            addToQueryBuffer(indexQuery)
+          }
+        } else {
+          println(s"Error: unable to parse line ${i}")
+          println(data)
         }
       }
       if(!queryBuffer.isEmpty) {
