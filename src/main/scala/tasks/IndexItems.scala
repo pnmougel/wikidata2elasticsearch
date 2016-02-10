@@ -8,22 +8,22 @@ import com.sksamuel.elastic4s.jackson.ElasticJackson.Implicits._
 import org.json4s._
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.jackson.JsonMethods._
+import parser.model.WikiDataItem
 import parser.model.enums.{DataType, Rank, SnakType}
 import shared.{InitModel, Conf, ElasticSearch, JsonIterator}
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * Created by nico on 05/02/16.
  */
 object IndexItems {
+  val indexName = Conf.getString("elasticsearch.index")
   implicit val formats = DefaultFormats + new EnumNameSerializer(Rank) + new EnumNameSerializer(DataType) + new EnumNameSerializer(SnakType)
   val client = ElasticSearch.client
 
   var queryBuffer = Vector[IndexDefinition]()
   def addToQueryBuffer(indexQuery: IndexDefinition) = {
     queryBuffer :+= indexQuery
-    if(queryBuffer.size >= Conf.getInt("elasticsearch.bulkSize")) {
+    if(!Conf.getBoolean("elasticsearch.testOnly") && queryBuffer.size >= Conf.getInt("elasticsearch.bulkSize")) {
       client.execute(bulk(queryBuffer))
       queryBuffer = Vector[IndexDefinition]()
     }
@@ -51,33 +51,34 @@ object IndexItems {
     }
   }
 
-  def main(args: Array[String]) {
-    val indexName = Conf.getString("elasticsearch.index")
+  def handleData(data: String, line: Option[Int] = None) = {
+    val js = transformJs(data)
+    js.extractOpt[WikiDataItem] match {
+      case Some(item) =>
+        if(item.isItem) {
+          val esItem = item.toEsItem
+          val indexQuery = index into indexName / "items" source esItem id esItem.id
+          addToQueryBuffer(indexQuery)
+        } else if(item.isProperty) {
+          val esItem = item.toEsProperty
+          val indexQuery = index into indexName / "prop" source esItem id esItem.id
+          addToQueryBuffer(indexQuery)
+        }
+      case None =>
+        println(s"\nError: unable to parse line ${line.getOrElse("")}")
+        println(data)
+    }
+  }
 
+  def main(args: Array[String]) {
     InitModel.createIndex
 
     val jsFile = new File(s"${Conf.getString("data.path")}/${Conf.getString("dump.file")}")
     if(jsFile.exists()) {
       new JsonIterator(jsFile).forEach { case (data, i) =>
-        val js = transformJs(data)
-        val itemOpt = js.extractOpt[parser.model.WikiDataItem]
-        if(itemOpt.isDefined) {
-          val item = itemOpt.get
-          if(item.isItem) {
-            val esItem = item.toEsItem
-            val indexQuery = index into indexName / "items" source esItem id esItem.id
-            addToQueryBuffer(indexQuery)
-          } else if(item.isProperty) {
-            val esItem = item.toEsProperty
-            val indexQuery = index into indexName / "prop" source esItem id esItem.id
-            addToQueryBuffer(indexQuery)
-          }
-        } else {
-          println(s"Error: unable to parse line ${i}")
-          println(data)
-        }
+        handleData(data, Some(i))
       }
-      if(!queryBuffer.isEmpty) {
+      if(queryBuffer.nonEmpty) {
         client.execute(bulk(queryBuffer))
       }
     } else {
