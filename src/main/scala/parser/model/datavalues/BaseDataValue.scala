@@ -11,14 +11,8 @@ import scala.collection.immutable.Map.{Map4, Map2}
 case class BaseDataValue(value: Any, `type`: String) {
   lazy val jsMap = value match {
     case str: String => Map("string" -> str)
-//    case x: Map2[String, _] => x
-//    case x: Map4[String, _] => x
-//    case x: HashTrieMap[String, _] => x
     case _ => {
       value.asInstanceOf[Map[String, Any]]
-//      println("Unable to map data fields")
-//      System.exit(0)
-//      Map[String, Any]()
     }
   }
 
