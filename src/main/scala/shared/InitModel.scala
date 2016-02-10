@@ -94,6 +94,16 @@ object InitModel {
   val indexName = Conf.getString("elasticsearch.index")
 
   def createIndex: Unit = {
+
+    val increaseQueueSizeSetting = Map(
+      "threadpool.bulk.type" -> "fixed",
+      "threadpool.bulk.size" -> "8",
+      "threadpool.bulk.queue_size" -> "10000"
+
+    )
+//    client.execute(cluster.persistentSettings(increaseQueueSizeSetting)).await
+    client.execute(cluster.transientSettings(increaseQueueSizeSetting)).await
+
     client.execute(indexExists(Seq(indexName))).map { f =>
 
       if(f.isExists && Conf.getBoolean("elasticsearch.deleteIndexIfExists")) {
