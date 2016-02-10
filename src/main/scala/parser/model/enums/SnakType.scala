@@ -5,6 +5,5 @@ package parser.model.enums
  */
 object SnakType extends Enumeration {
   type SnakType = Value
-//  val value, novalue, somevalue = Value
   val HasValue, NoValue, SomeValue = Value
 }
