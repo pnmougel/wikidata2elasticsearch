@@ -16,7 +16,7 @@ object SplitJson {
   val outPath = Conf.getString("data.parts")
 
   def main(args: Array[String]) {
-      new JsonIterator(inFile).forEach { content =>
+      new JsonIterator(inFile).forEach { case (content, i) =>
       val startAt = content.indexOf("\"id\":\"")
       if (startAt == -1) {
         println("Error: Unable to find id")
