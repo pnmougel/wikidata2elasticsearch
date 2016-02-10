@@ -6,25 +6,37 @@ Import wikidata to an elasticsearch instance
 
 You must have sbt, wget and elasticsearch >= 2 installed 
 
+```
+sudo apt-get install wget sbt
+```
+
 ## Tasks
+
+### Download a dump of wikidata
 
 ```
 sbt download
 ```
-
-Download a dump of wikidata
+### Uncompress the bzipped dump
 
 ```
 sbt flatten
 ```
 
-Uncompress the bzipped dump
+### Split the downloaded json file into parts
 
 ```
 sbt split
 ```
 
-Split the downloaded json file into parts
+This task is not required to perform the import into elasticsearch
+
+### Index wikidata documents into elasticsearch
+
+```
+sbt index
+```
+
 
 
 ## Configuration
