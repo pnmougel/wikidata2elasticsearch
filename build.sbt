@@ -19,6 +19,9 @@ libraryDependencies ++= {
     "org.slf4j"    % "slf4j-api"    % "1.7.1",
     "org.slf4j"    % "log4j-over-slf4j"  % "1.7.1",
 
+    // Apache compress
+    "org.apache.commons" % "commons-compress" % "1.10",
+
     // Json4s
     "org.json4s" %% "json4s-jackson" % "3.3.0",
     "org.json4s" % "json4s-ext_2.10" % "3.3.0"
@@ -29,8 +32,8 @@ lazy val download = taskKey[Unit]("Download wikidata")
 fullRunTask(download, Compile, "tasks.Download")
 addCommandAlias("dl", "download")
 
-lazy val flatten = taskKey[Unit]("Uncompress wikidata file")
-fullRunTask(flatten, Compile, "tasks.Flatten")
+lazy val unzip = taskKey[Unit]("Uncompress wikidata file")
+fullRunTask(unzip, Compile, "tasks.Unzip")
 
 lazy val split = taskKey[Unit]("Split json file")
 fullRunTask(split, Compile, "tasks.SplitJson")
