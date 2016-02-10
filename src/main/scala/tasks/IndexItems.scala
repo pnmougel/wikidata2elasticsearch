@@ -1,6 +1,6 @@
 package tasks
 
-import java.io.File
+import java.io.{PrintWriter, File}
 
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.IndexDefinition
@@ -11,6 +11,7 @@ import org.json4s.jackson.JsonMethods._
 import parser.model.WikiDataItem
 import parser.model.enums.{DataType, Rank, SnakType}
 import shared.{InitModel, Conf, ElasticSearch, JsonIterator}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * Created by nico on 05/02/16.
@@ -20,13 +21,46 @@ object IndexItems {
   implicit val formats = DefaultFormats + new EnumNameSerializer(Rank) + new EnumNameSerializer(DataType) + new EnumNameSerializer(SnakType)
   val client = ElasticSearch.client
 
+  val logDir = new File("logs")
+  if(!logDir.exists()) {
+    logDir.mkdir()
+  }
+  val errorLogs = new PrintWriter("logs/index.errors.log")
+
   var queryBuffer = Vector[IndexDefinition]()
+  var errorBuffer = Vector[IndexDefinition]()
+
   def addToQueryBuffer(indexQuery: IndexDefinition) = {
     queryBuffer :+= indexQuery
-    if(!Conf.getBoolean("elasticsearch.testOnly") && queryBuffer.size >= Conf.getInt("elasticsearch.bulkSize")) {
-      client.execute(bulk(queryBuffer))
-      queryBuffer = Vector[IndexDefinition]()
+    if(queryBuffer.size >= Conf.getInt("elasticsearch.bulkSize")) {
+      sendBuffer(queryBuffer)
     }
+  }
+
+  def sendBuffer(buffer: Vector[IndexDefinition]): Unit = {
+    val curBuffer = buffer
+    if(!Conf.getBoolean("elasticsearch.testOnly")) {
+      client.execute(bulk(buffer)).map { res =>
+        for(failure <- res.failures) {
+          errorLogs.println(s"${failure.failureMessage}")
+          errorBuffer :+= curBuffer(failure.itemId)
+        }
+      }
+      if(errorBuffer.size >= Conf.getInt("elasticsearch.bulkSize")) {
+        sendErrorBuffer()
+      }
+    }
+    queryBuffer = Vector[IndexDefinition]()
+  }
+
+  def sendErrorBuffer(): Unit = {
+    var remainingErrors = Vector[IndexDefinition]()
+    client.execute(bulk(errorBuffer)).map { res =>
+      for(failure <- res.failures) {
+        remainingErrors :+= errorBuffer(failure.itemId)
+      }
+      errorBuffer = remainingErrors
+    }.await
   }
 
   def transformJs(data: String) : JValue = {
@@ -75,7 +109,7 @@ object IndexItems {
 
     val jsFile = new File(s"${Conf.getString("data.path")}/${Conf.getString("dump.file")}")
     if(jsFile.exists()) {
-      new JsonIterator(jsFile).forEach { case (data, i) =>
+      new JsonIterator(jsFile, 10000).forEach { case (data, i) =>
         handleData(data, Some(i))
       }
       if(queryBuffer.nonEmpty) {
@@ -84,5 +118,7 @@ object IndexItems {
     } else {
       println(s"Error: missing file '${jsFile.getAbsolutePath}'")
     }
+    errorLogs.flush()
+    errorLogs.close()
   }
 }
