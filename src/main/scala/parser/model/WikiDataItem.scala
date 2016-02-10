@@ -49,6 +49,6 @@ case class WikiDataItem(`type`: String, datatype: Option[DataType], id: String,
 
   def toEsProperty = {
     val claimsEs = for((propertyId, claimsForProperty) <- claims; claim <- claimsForProperty) yield { claim.toEs(propertyId) }
-    EsProperty(id, claimsEs.toArray, datatype, localizedLabels)
+    EsProperty(id, claimsEs.toArray, datatype.map(_.toString), localizedLabels)
   }
 }
