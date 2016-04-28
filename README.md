@@ -19,7 +19,7 @@ sbt download
 #### Uncompress the bzipped dump
 
 ```
-sbt flatten
+sbt unzip
 ```
 
 #### Split the downloaded json file into parts
