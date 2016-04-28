@@ -45,7 +45,7 @@ object IndexItems {
           errorLogs.println(s"${failure.failureMessage}")
           errorBuffer :+= curBuffer(failure.itemId)
         }
-      }
+      }.await
       if(errorBuffer.size >= Conf.getInt("elasticsearch.bulkSize")) {
         sendErrorBuffer()
       }
@@ -109,7 +109,7 @@ object IndexItems {
 
     val jsFile = new File(s"${Conf.getString("data.path")}/${Conf.getString("dump.file")}")
     if(jsFile.exists()) {
-      new JsonIterator(jsFile, 10000).forEach { case (data, i) =>
+      new JsonIterator(jsFile).forEach { case (data, i) =>
         handleData(data, Some(i))
       }
       if(queryBuffer.nonEmpty) {
